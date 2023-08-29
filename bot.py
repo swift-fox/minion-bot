@@ -1,6 +1,7 @@
 import torch, cv2
 from jetbot import Robot
 from threading import Timer
+from ultralytics import YOLO
 
 # Set the object to follow
 obj_follow = 'bottle'
@@ -19,15 +20,15 @@ obj_names = [
 follow_idx = obj_names.index(obj_follow)
 
 # Load the model
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).autoshape().cuda()
+model = YOLO('yolov8n.pt').to('cuda')
 
 # Camera settings
-capture_width = 3280
-capture_height = 2464
-framerate = 5
+capture_width = 1280
+capture_height = 720
+framerate = 6
 flip_method = 0
-video_width = 224
-video_height = 224
+video_width = 320
+video_height = 180
 
 # Get the camera
 gst_pipeline = (f'nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int){capture_width}, height=(int){capture_height}, format=(string)NV12, framerate=(fraction){framerate}/1 ! '
@@ -45,7 +46,9 @@ robot = Robot()
 stop_timer = Timer(0, robot.stop)
 def set_timer(duration):
     global stop_timer
-    stop_timer.cancel()
+
+    if stop_timer.is_alive():
+        stop_timer.cancel()
 
     if duration > 0:
         stop_timer = Timer(duration, robot.stop)
@@ -81,7 +84,7 @@ turn_end = 0.1
 move_begin_far = 0.09
 move_end_far = 0.12
 move_end_near = 0.15
-move_begin_near = 0.22
+move_begin_near = 0.18
 move_center = (move_end_near + move_end_far) / 2
 
 def need_turn(position):
@@ -99,11 +102,13 @@ def move_done(size):
 # The main loop
 while True:
     _, image = camera.read()
-    pred = model(image, size=video_width)
 
-    for x, y, w, h, score, idx in pred.xywh[0]:
-        if idx != follow_idx:
-            continue
+    results = model(image, classes=[follow_idx], verbose=False)
+    boxes = results[0].boxes
+
+    for i in range(len(boxes.cls)):
+        x, y, w, h = boxes.xywh[i]
+        score = boxes.conf[i]
 
         position = x * 2 / video_width - 1
         size = w / video_width

@@ -22,9 +22,9 @@ The robot does only one thing, which is to find the object and center it in its 
 
 ### Vision model
 
-[YOLOv5](https://github.com/ultralytics/yolov5) is the vision model at work. The model is pre-trained on the [COCO 2017 dataset](https://cocodataset.org). It can recognize 80 kinds of common objects. But seems bottles are what it can recognize the best. So I used one to guide the robot.
+[YOLOv8](https://github.com/ultralytics/ultralytics) is the vision model at work. The model is pre-trained on the [COCO 2017 dataset](https://cocodataset.org). It can recognize 80 kinds of common objects. But seems bottles are what it can recognize the best. So I used one to guide the robot.
 
-The model runs on the GPU. The performance isn't prime. With 224 x 224 resolution, it can run 5 frames per second with observable latency. This is at the bare minimal level to make the bot work. To optimize this, TensorRT is the smart way to go.
+The model runs on the GPU. The performance isn't prime. With 320 x 180 resolution, it can run 6 frames per second with observable latency. This is at the bare minimal level to make the bot work. To optimize this, TensorRT is the smart way to go.
 
 ### Motion control
 
